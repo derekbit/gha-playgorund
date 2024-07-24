@@ -2,55 +2,34 @@ import os
 import requests
 from datetime import datetime, timedelta
 
-def get_project_issues():
-    project_id = 5
-    org = "longhorn"
+def get_issues():
+    repo = "longhorn/longhorn"
     token = os.getenv('GITHUB_TOKEN')
     headers = {'Authorization': f'token {token}'}
-    url = f"https://api.github.com/orgs/{org}/projects/{project_id}/columns"
-    response = requests.get(url, headers=headers)
+    url = f"https://api.github.com/repos/{repo}/issues"
+    params = {
+        'state': 'open',
+        'since': (datetime.utcnow() - timedelta(days=7)).isoformat() + 'Z'
+    }
+    response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
-    columns = response.json()
-
-    issues = []
-    for column in columns:
-        column_url = column['cards_url']
-        column_response = requests.get(column_url, headers=headers)
-        column_response.raise_for_status()
-        cards = column_response.json()
-
-        for card in cards:
-            if 'content_url' in card and 'issues' in card['content_url']:
-                issue_url = card['content_url']
-                issue_response = requests.get(issue_url, headers=headers)
-                issue_response.raise_for_status()
-                issue = issue_response.json()
-                issues.append(issue)
-
+    issues = response.json()
     return issues
 
-def filter_issues(issues):
+def filter_issues(issues, team_members):
     filtered_issues = []
-    maintainers = get_maintainers()
     for issue in issues:
         if 'pull_request' in issue:
             continue
-        if issue['user']['login'] not in maintainers and not issue['comments']:
+        if issue['user']['login'] not in team_members and not issue['comments']:
             labels = [label['name'] for label in issue['labels']]
             if 'require/backport' not in labels:
                 filtered_issues.append(issue)
     return filtered_issues
 
-def get_maintainers():
-    repo = "longhorn/longhorn"
-    token = os.getenv('GITHUB_TOKEN')
-    headers = {'Authorization': f'token {token}'}
-    url = f"https://api.github.com/repos/{repo}/collaborators"
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    collaborators = response.json()
-    maintainers = [collab['login'] for collab in collaborators]
-    return maintainers
+def get_team_members():
+    team_members = os.getenv('TEAM_MEMBERS').split(',')
+    return team_members
 
 def send_to_slack(issues):
     webhook_url = os.getenv('SLACK_WEBHOOK_URL')
@@ -73,8 +52,9 @@ def send_to_slack(issues):
     response.raise_for_status()
 
 def main():
-    issues = get_project_issues()
-    unanswered_issues = filter_issues(issues)
+    issues = get_issues()
+    team_members = get_team_members()
+    unanswered_issues = filter_issues(issues, team_members)
     send_to_slack(unanswered_issues)
 
 if __name__ == "__main__":
