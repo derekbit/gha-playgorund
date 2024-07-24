@@ -23,7 +23,9 @@ def filter_issues(issues):
         if 'pull_request' in issue:
             continue
         if issue['user']['login'] not in maintainers and not issue['comments']:
-            filtered_issues.append(issue)
+            labels = [label['name'] for label in issue['labels']]
+            if 'require/backport' not in labels:
+                filtered_issues.append(issue)
     return filtered_issues
 
 def get_maintainers():
