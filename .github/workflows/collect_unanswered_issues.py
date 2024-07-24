@@ -16,6 +16,16 @@ def get_issues():
     issues = response.json()
     return issues
 
+def get_comments(issue_number):
+    repo = "longhorn/longhorn"
+    token = os.getenv('GITHUB_TOKEN')
+    headers = {'Authorization': f'token {token}'}
+    url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    comments = response.json()
+    return comments
+
 def filter_issues(issues, team_members):
     filtered_issues = []
     for issue in issues:
@@ -28,22 +38,12 @@ def filter_issues(issues, team_members):
 
         comments = get_comments(issue['number'])
         if comments:
-            commented_by_maintainer = any(comment['user']['login'] in team_members for comment in comments)
-            if commented_by_maintainer:
+            commented_by_team = any(comment['user']['login'] in team_members for comment in comments)
+            if commented_by_team:
                 continue
-
+        
         filtered_issues.append(issue)
     return filtered_issues
-
-def get_comments(issue_number):
-    repo = "longhorn/longhorn"
-    token = os.getenv('GITHUB_TOKEN')
-    headers = {'Authorization': f'token {token}'}
-    url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
-    response = requests.get(url, headers=headers)
-    response.raise_for_status()
-    comments = response.json()
-    return comments
 
 def get_team_members():
     org = "longhorn"
