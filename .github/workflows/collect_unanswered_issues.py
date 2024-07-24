@@ -29,7 +29,7 @@ def filter_issues(issues, team_members):
 
 def get_team_members():
     org = "longhorn"
-    team_slug = "your-team-slug"
+    team_slug = "dev"
     token = os.getenv('GITHUB_TOKEN')
     headers = {'Authorization': f'token {token}'}
     url = f"https://api.github.com/orgs/{org}/teams/{team_slug}/members"
