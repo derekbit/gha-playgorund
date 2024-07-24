@@ -21,10 +21,29 @@ def filter_issues(issues, team_members):
     for issue in issues:
         if 'pull_request' in issue:
             continue
-        if issue['user']['login'] in team_members or issue['user']['login'] == 'github-actions[bot]' or issue['comments']:
+        if '[TEST]' in issue['title'] or '[BACKPORT]' in issue['title']:
             continue
+        if issue['user']['login'] in team_members or issue['user']['login'] == 'github-actions[bot]':
+            continue
+
+        comments = get_comments(issue['number'])
+        if comments:
+            commented_by_maintainer = any(comment['user']['login'] in team_members for comment in comments)
+            if commented_by_maintainer:
+                continue
+
         filtered_issues.append(issue)
     return filtered_issues
+
+def get_comments(issue_number):
+    repo = "longhorn/longhorn"
+    token = os.getenv('GITHUB_TOKEN')
+    headers = {'Authorization': f'token {token}'}
+    url = f"https://api.github.com/repos/{repo}/issues/{issue_number}/comments"
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    comments = response.json()
+    return comments
 
 def get_team_members():
     org = "longhorn"
