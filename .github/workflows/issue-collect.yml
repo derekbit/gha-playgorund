@@ -21,7 +21,7 @@ jobs:
         team_slug: your-team-slug
         user: ${{ github.actor }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
 
     - name: Set up Python
       uses: actions/setup-python@v4
