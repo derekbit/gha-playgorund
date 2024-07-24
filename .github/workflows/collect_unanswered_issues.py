@@ -21,10 +21,11 @@ def filter_issues(issues, team_members):
     for issue in issues:
         if 'pull_request' in issue:
             continue
-        if issue['user']['login'] not in team_members and not issue['comments']:
-            labels = [label['name'] for label in issue['labels']]
-            if 'require/backport' not in labels:
-                filtered_issues.append(issue)
+        if issue['user']['login'] in team_members or issue['user']['login'] == 'github-actions' or issue['comments']:
+            continue
+        labels = [label['name'] for label in issue['labels']]
+        if 'require/backport' not in labels:
+            filtered_issues.append(issue)
     return filtered_issues
 
 def get_team_members():
