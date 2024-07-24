@@ -2,7 +2,7 @@ name: Scan Issues and Notify Slack
 
 on:
   schedule:
-  - cron: '*/3 * * * *'
+  - cron: '*/60 * * * *'
   workflow_dispatch:
 
 jobs:

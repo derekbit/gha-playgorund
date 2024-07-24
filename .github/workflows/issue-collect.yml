@@ -2,7 +2,7 @@ name: Collect Unanswered Issues
 
 on:
   schedule:
-  - cron: '*/5 * * * *'
+  - cron: '*/60 * * * *'
   workflow_dispatch:
 
 jobs:
