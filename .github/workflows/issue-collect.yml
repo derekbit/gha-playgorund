@@ -34,7 +34,7 @@ jobs:
 
     - name: Collect unanswered issues
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         TEAM_MEMBERS: ${{ steps.get_team_members.outputs.members }}
       run: |
