@@ -9,7 +9,7 @@ def get_issues():
     url = f"https://api.github.com/repos/{repo}/issues"
     params = {
         'state': 'open',
-        'since': (datetime.utcnow() - timedelta(days=7)).isoformat() + 'Z'
+        'since': (datetime.utcnow() - timedelta(days=30)).isoformat() + 'Z'
     }
     response = requests.get(url, headers=headers, params=params)
     response.raise_for_status()
