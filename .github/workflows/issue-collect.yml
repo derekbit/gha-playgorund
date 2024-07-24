@@ -13,16 +13,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Get team members
-      id: get_team_members
-      uses: tspascoal/get-user-teams-membership@v1.0.4
-      with:
-        org: longhorn
-        team_slug: your-team-slug
-        user: ${{ github.actor }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
-
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -36,6 +26,5 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        TEAM_MEMBERS: ${{ steps.get_team_members.outputs.members }}
       run: |
         python .github/workflows/collect_unanswered_issues.py

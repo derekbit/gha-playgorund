@@ -28,7 +28,15 @@ def filter_issues(issues, team_members):
     return filtered_issues
 
 def get_team_members():
-    team_members = os.getenv('TEAM_MEMBERS').split(',')
+    org = "longhorn"
+    team_slug = "your-team-slug"
+    token = os.getenv('GITHUB_TOKEN')
+    headers = {'Authorization': f'token {token}'}
+    url = f"https://api.github.com/orgs/{org}/teams/{team_slug}/members"
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    members = response.json()
+    team_members = [member['login'] for member in members]
     return team_members
 
 def send_to_slack(issues):
