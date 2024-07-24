@@ -45,7 +45,16 @@ def send_to_slack(issues):
         message = "Unanswered Issues in the last 7 days:\n"
         for issue in issues:
             message += f"- {issue['title']} ({issue['html_url']})\n"
-    response = requests.post(webhook_url, json={'text': message})
+    
+    payload = {
+        "payload": message
+    }
+    
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.post(webhook_url, json=payload, headers=headers)
     response.raise_for_status()
 
 def main():
