@@ -2,18 +2,31 @@ import os
 import requests
 from datetime import datetime, timedelta
 
-def get_issues():
-    repo = "longhorn/longhorn"
+def get_project_issues():
+    project_id = 5
+    org = "longhorn"
     token = os.getenv('GITHUB_TOKEN')
     headers = {'Authorization': f'token {token}'}
-    url = f"https://api.github.com/repos/{repo}/issues"
-    params = {
-        'state': 'open',
-        'since': (datetime.utcnow() - timedelta(days=7)).isoformat() + 'Z'
-    }
-    response = requests.get(url, headers=headers, params=params)
+    url = f"https://api.github.com/orgs/{org}/projects/{project_id}/columns"
+    response = requests.get(url, headers=headers)
     response.raise_for_status()
-    issues = response.json()
+    columns = response.json()
+
+    issues = []
+    for column in columns:
+        column_url = column['cards_url']
+        column_response = requests.get(column_url, headers=headers)
+        column_response.raise_for_status()
+        cards = column_response.json()
+
+        for card in cards:
+            if 'content_url' in card and 'issues' in card['content_url']:
+                issue_url = card['content_url']
+                issue_response = requests.get(issue_url, headers=headers)
+                issue_response.raise_for_status()
+                issue = issue_response.json()
+                issues.append(issue)
+
     return issues
 
 def filter_issues(issues):
@@ -60,7 +73,7 @@ def send_to_slack(issues):
     response.raise_for_status()
 
 def main():
-    issues = get_issues()
+    issues = get_project_issues()
     unanswered_issues = filter_issues(issues)
     send_to_slack(unanswered_issues)
 
