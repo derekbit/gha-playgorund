@@ -27,4 +27,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
       run: |
-        python collect_unanswered_issues.py
+        python .github/workflows/collect_unanswered_issues.py
