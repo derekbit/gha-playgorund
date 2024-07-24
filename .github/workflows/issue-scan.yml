@@ -1,0 +1,36 @@
+name: Scan Issues and Notify Slack
+
+on:
+  schedule:
+  - cron: '*/3 * * * *'
+  workflow_dispatch:
+
+jobs:
+  scan-issues:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+
+    - name: Install jq
+      run: sudo apt-get install jq
+
+    - name: Scan issues and notify Slack
+      env:
+        GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      run: |
+        issues=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/derekbit/gha-playgorund/issues?since=$(date -d '-14 days' --iso-8601=seconds)")
+        unanswered_issues=$(echo "$issues" | jq '[.[] | select(.assignees | length == 0 or .assignees[].login as $login | ["andy", "demi"] | index($login) | not)]')
+
+        if [ $(echo "$unanswered_issues" | jq length) -gt 0 ]; then
+          issues=$(echo "$unanswered_issues" | jq -r '.[] | "- \(.html_url)"' | paste -sd '\n' -)
+          text=$(echo -e "There are unanswered issues:\n$issues")
+          payload=$(jq -n --arg text "$text" '{payload: $text}')
+          curl -X POST -H 'Content-type: application/json' --data "$payload" $SLACK_WEBHOOK_URL
+        else
+          echo "No unanswered issues found."
+        fi
+
+
+
