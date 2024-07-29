@@ -1,0 +1,32 @@
+name: Trivy Scan
+on:
+  pull_request:
+    # only run on PRs where go.mod/go.sum/etc have been updated
+    paths:
+    - go.*
+  push:
+    branches:
+    - main
+    paths:
+    - go.*
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Trivy vulnerability scanner (table output)
+      uses: aquasecurity/trivy-action@0.24.0
+      with:
+        # scan the filesystem, rather than building a Docker image prior - the
+        # downside is we won't catch dependencies that are only installed in the
+        # image, but the upside is we'll only catch vulnerabilities that are
+        # explicitly in the our dependencies
+        scan-type: 'fs'
+        scanners: 'vuln'
+        format: 'table'
+        exit-code: 1
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+        trivyignores: .trivyignore
