@@ -35,3 +35,29 @@ jobs:
           revert
           BREAKING
 
+  commitlint:
+    name: "Commitlint"
+    if: github.event_name == 'pull_request' && inputs.enable-commitlint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    outputs:
+      result: ${{ steps.commitlint.outcome }}
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Setup node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 16
+    - name: Install Dependencies
+      run: npm install @commitlint/config-conventional @commitlint/cli
+    - name: Retrieve Commit Configuration
+      run: |
+        wget https://raw.githubusercontent.com/${{ inputs.cicd-repository }}/${{ inputs.cicd-branch }}/config/commitlint.config.js -O commitlint.config.js
+    - name: Run Commitlint
+      id: commitlint
+      run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
