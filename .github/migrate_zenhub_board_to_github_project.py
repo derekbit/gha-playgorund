@@ -77,7 +77,7 @@ def get_github_project_node_id():
 
 
 def get_github_issue_node_id(issue_number):
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/issues/{issue_number}"
+    url = f"https://api.github.com/repos/{GITHUB_ORG}/{GITHUB_REPO}/issues/{issue_number}"
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
         "Accept": "application/vnd.github.v3+json"
