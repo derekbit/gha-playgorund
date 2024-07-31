@@ -17,7 +17,7 @@ PROJECT_BOARD_ID = "66a8704553f5880017fe7d21"
 def get_github_repo_id():
     url = f"{GITHUB_API_URL}/repos/{GITHUB_OWNER}/{GITHUB_REPO}"
     headers = {
-        "Authorization": "token GITHUB_TOKEN"
+        "Authorization": GITHUB_TOKEN
     }
     response = requests.get(url, headers=headers)
 
