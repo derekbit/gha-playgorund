@@ -192,6 +192,8 @@ def migrate_tickets():
     project = get_github_project()
     project_number = project.get("number")
     project_id = project.get("id")
+    print(project_number)
+    print(project_id)
 
     node_id, statuses = get_github_project_statuses(project_number)
     print(node_id)
@@ -209,11 +211,7 @@ def migrate_tickets():
             issue_id = issue['node_id']
 
             add_project_item(project_id, issue_id)
-            # issue_title = issue['issue_title']
-            # issue_body = f"ZenHub Issue ID: {issue['issue_number']}"
-            # labels = [pipeline['name']]
-            # github_issue = create_github_issue(issue_title, issue_body, labels)
-            # add_issue_to_project(github_issue['id'], column_id)
+
 
     node_id = get_github_project_node_id()
     print(node_id)
