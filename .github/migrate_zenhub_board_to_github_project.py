@@ -45,37 +45,6 @@ def get_zenhub_board():
         response.raise_for_status()
 
 
-def get_github_project_node_id():
-    query = '''
-    {
-      repository(owner: "%s", name: "%s") {
-        projectsV2(first: 100) {
-          nodes {
-            id
-            title
-          }
-        }
-      }
-    }
-    ''' % (GITHUB_ORG, GITHUB_REPO)
-
-    headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "query": query
-    }
-
-    response = requests.post(GITHUB_GRAPHQL_URL, json=data, headers=headers)
-    if response.status_code == 200:
-        result = response.json()
-        project_id = jq.first(f'.data.repository.projectsV2.nodes[] | select(.title == "{GITHUB_PROJECT}") | .id', result)
-        return project_id
-    else:
-        raise Exception(f"Query failed to run by returning code of {response.status_code}. {response.text}")
-
-
 def get_github_issue(issue_number):
     url = f"https://api.github.com/repos/{GITHUB_ORG}/{GITHUB_REPO}/issues/{issue_number}"
     headers = {
@@ -136,9 +105,9 @@ def get_github_project_statuses(project_number):
         response.raise_for_status()
 
 
-def get_github_project():
+def get_github_project(github_token, github_org):
     headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
     }
     query = '''
@@ -153,7 +122,7 @@ def get_github_project():
         }
       }
     }
-    ''' % (GITHUB_ORG)
+    ''' % (github_org)
     payload = {
         "query": query
     }
@@ -187,17 +156,41 @@ def add_project_item(project_id, content_id):
     return response.json()
 
 
+def move_item_to_status(github_token, project_id, item_id, field_id, single_select_option_id):
+    headers = {
+        "Authorization": f"Bearer {github_token}",
+        "Content-Type": "application/json"
+    }
+    query = '''
+    mutation {
+      updateProjectV2ItemFieldValue(input: {projectId: "%s", itemId: "%s", fieldId: "%s", value: {singleSelectOptionId: "%s"}}) {
+        projectV2Item {
+          id
+        }
+      }
+    }
+    ''' % (project_id, item_id, field_id, single_select_option_id)
+    payload = {
+        "query": query
+    }
+
+    response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        response.raise_for_status()
+
+
 def migrate_tickets():
     # Get status map from GitHub project
-    project = get_github_project()
+    project = get_github_project(GITHUB_TOKEN, GITHUB_ORG)
     project_number = project.get("number")
     project_id = project.get("id")
-    print(project_number)
-    print(project_id)
+    node_id, status_list = get_github_project_statuses(project_number)
+    print(f"GitHub Project Details: number={project_number}, id={project_id}, status={status_list}")
 
-    node_id, statuses = get_github_project_statuses(project_number)
     print(node_id)
-    print(statuses)
+    print(status_list)
 
     board = get_zenhub_board()
     for pipeline in board['pipelines']:
@@ -210,18 +203,9 @@ def migrate_tickets():
             issue = get_github_issue(issue['issue_number'])
             issue_id = issue['node_id']
 
-            add_project_item(project_id, issue_id)
-
-
-    node_id = get_github_project_node_id()
-    print(node_id)
-    #     # if column_id:
-    #     #     for issue in pipeline['issues']:
-    #     #         issue_title = issue['issue_title']
-    #     #         issue_body = f"ZenHub Issue ID: {issue['issue_number']}"
-    #     #         labels = [pipeline['name']]
-    #     #         github_issue = create_github_issue(issue_title, issue_body, labels)
-    #     #         add_issue_to_project(github_issue['id'], column_id)
+            result = add_project_item(project_id, issue_id)
+            item_id = result['data']['addProjectV2ItemById']['item']['id']
+            move_item_to_status(GITHUB_TOKEN, project_id, item_id, node_id, status_list[column_name])
 
 
 if __name__ == "__main__":
