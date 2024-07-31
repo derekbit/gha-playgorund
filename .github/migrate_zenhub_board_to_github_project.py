@@ -2,40 +2,38 @@ import requests
 import os
 import jq
 
+
 GITHUB_ORG = "dereksu-org"
 GITHUB_REPO = "gha-playground"
 GITHUB_PROJECT = "helloworld"
 GITHUB_API_URL = "https://api.github.com"
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 
-
 ZENHUB_API_URL = "https://api.zenhub.com/p1/repositories/{repo_id}/board"
 
-ZENHUB_ACCESS_TOKEN = os.getenv("ZENHUB_ACCESS_TOKEN")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_OWNER = "derekbit"
 GITHUB_REPO = "gha-playground"
-PROJECT_BOARD_ID = "66a8704553f5880017fe7d21"
 
 
-def get_github_repo_id():
+def get_github_repo_id(github_token):
     url = f"{GITHUB_API_URL}/repos/{GITHUB_OWNER}/{GITHUB_REPO}"
     headers = {
-        "Authorization": GITHUB_TOKEN
+        "Authorization": github_token
     }
 
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
+        print("Debug ==>", response.json().get("id"))
         return response.json().get("id")
     else:
         response.raise_for_status()
 
 
-def get_zenhub_board():
-    url = ZENHUB_API_URL.format(repo_id=get_github_repo_id())
+def get_zenhub_board(zenhub_token, github_token):
+    url = ZENHUB_API_URL.format(repo_id=get_github_repo_id(github_token))
     headers = {
         "Content-Type": "application/json",
-        "X-Authentication-Token": ZENHUB_ACCESS_TOKEN
+        "X-Authentication-Token": zenhub_token
     }
 
     response = requests.get(url, headers=headers)
@@ -45,10 +43,10 @@ def get_zenhub_board():
         response.raise_for_status()
 
 
-def get_github_issue(issue_number):
-    url = f"https://api.github.com/repos/{GITHUB_ORG}/{GITHUB_REPO}/issues/{issue_number}"
+def get_github_issue(github_token, github_org, github_repo, issue_number):
+    url = f"https://api.github.com/repos/{github_org}/{github_repo}/issues/{issue_number}"
     headers = {
-        "Authorization": f"token {GITHUB_TOKEN}",
+        "Authorization": f"token {github_token}",
         "Accept": "application/vnd.github.v3+json"
     }
 
@@ -59,9 +57,9 @@ def get_github_issue(issue_number):
         response.raise_for_status()
 
 
-def get_github_project_statuses(project_number):
+def get_github_project_status(github_token, project_number):
     headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
     }
     query = '''
@@ -134,9 +132,9 @@ def get_github_project(github_token, github_org):
         response.raise_for_status()
 
 
-def add_project_item(project_id, content_id):
+def add_github_project_item(github_token, project_id, content_id):
     headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
     }
     query = '''
@@ -182,30 +180,35 @@ def move_item_to_status(github_token, project_id, item_id, field_id, single_sele
 
 
 def migrate_tickets():
-    # Get status map from GitHub project
-    project = get_github_project(GITHUB_TOKEN, GITHUB_ORG)
+    github_token = os.getenv("GITHUB_TOKEN")
+    zenhub_token = os.getenv("ZENHUB_ACCESS_TOKEN")
+    
+    # Get the GitHub Project details
+    project = get_github_project(github_token, GITHUB_ORG)
     project_number = project.get("number")
     project_id = project.get("id")
-    node_id, status_list = get_github_project_statuses(project_number)
-    print(f"GitHub Project Details: number={project_number}, id={project_id}, status={status_list}")
+    node_id, status = get_github_project_status(github_token, project_number)
+    print(f"GitHub Project Details: number={project_number}, id={project_id}, status={status}")
 
-    print(node_id)
-    print(status_list)
-
-    board = get_zenhub_board()
+    # Get the ZenHub board details
+    board = get_zenhub_board(zenhub_token, github_token)
     for pipeline in board['pipelines']:
+        # Iterating through each pipeline, which are corresponding to the GitHub Project statuses (columns)
         column_name = pipeline['name']
 
         print(column_name)
         # Iterating through each ticket in the pipeline,
         # and creating a corresponding GitHub issue
         for issue in pipeline['issues']:
-            issue = get_github_issue(issue['issue_number'])
-            issue_id = issue['node_id']
+            issue = get_github_issue(github_token, GITHUB_ORG, GITHUB_REPO,
+                                     issue['issue_number'])
 
-            result = add_project_item(project_id, issue_id)
+            result = add_github_project_item(github_token,
+                                             project_id, issue['node_id'])
             item_id = result['data']['addProjectV2ItemById']['item']['id']
-            move_item_to_status(GITHUB_TOKEN, project_id, item_id, node_id, status_list[column_name])
+            move_item_to_status(github_token,
+                                project_id, item_id, node_id,
+                                status[column_name])
 
 
 if __name__ == "__main__":
