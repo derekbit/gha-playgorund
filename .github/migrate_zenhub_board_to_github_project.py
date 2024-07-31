@@ -2,7 +2,6 @@ import requests
 import os
 import jq
 
-
 GITHUB_ORG = "dereksu-org"
 GITHUB_REPO = "gha-playground"
 GITHUB_PROJECT = "helloworld"
@@ -10,10 +9,6 @@ GITHUB_API_URL = "https://api.github.com"
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
 
 ZENHUB_API_URL = "https://api.zenhub.com/p1/repositories/{repo_id}/board"
-
-GITHUB_OWNER = "derekbit"
-GITHUB_REPO = "gha-playground"
-
 
 def get_github_repo_id(github_token):
     url = f"{GITHUB_API_URL}/repos/{GITHUB_ORG}/{GITHUB_REPO}"
@@ -103,7 +98,7 @@ def get_github_project_status(github_token, project_number):
         response.raise_for_status()
 
 
-def get_github_project(github_token, github_org):
+def get_github_project(github_token, github_org, github_project):
     headers = {
         "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
@@ -127,7 +122,10 @@ def get_github_project(github_token, github_org):
 
     response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
     if response.status_code == 200:
-        return response.json().get("data").get("organization").get("projectsV2").get("nodes")[0]
+        # fine project by title
+        for project in response.json().get("data").get("organization").get("projectsV2").get("nodes"):
+            if project.get("title") == github_project:
+                return project
     else:
         response.raise_for_status()
 
@@ -182,9 +180,13 @@ def move_item_to_status(github_token, project_id, item_id, field_id, single_sele
 def migrate_tickets():
     github_token = os.getenv("GITHUB_TOKEN")
     zenhub_token = os.getenv("ZENHUB_ACCESS_TOKEN")
+    github_org = os.getenv("GITHUB_ORG")
+    github_repo = os.getenv("GITHUB_REPO")
+    github_project = os.getenv("GITHUB_PROJECT")
+    
 
     # Get the GitHub Project details
-    project = get_github_project(github_token, GITHUB_ORG)
+    project = get_github_project(github_token, github_org)
     print(f"GitHub Project Details: {project}")
     project_number = project.get("number")
     project_id = project.get("id")
@@ -201,7 +203,7 @@ def migrate_tickets():
         # Iterating through each ticket in the pipeline,
         # and creating a corresponding GitHub issue
         for issue in pipeline['issues']:
-            issue = get_github_issue(github_token, GITHUB_ORG, GITHUB_REPO,
+            issue = get_github_issue(github_token, github_org, github_repo,
                                      issue['issue_number'])
 
             result = add_github_project_item(github_token,
