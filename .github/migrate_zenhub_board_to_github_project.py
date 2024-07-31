@@ -16,15 +16,27 @@ GITHUB_REPO = "gha-playground"
 
 
 def get_github_repo_id(github_token):
-    url = f"{GITHUB_API_URL}/repos/{GITHUB_OWNER}/{GITHUB_REPO}"
+    url = GITHUB_API_URL
     headers = {
-        "Authorization": github_token
+        "Authorization": f"Bearer {github_token}",
+        "Content-Type": "application/json"
+    }
+    query = '''
+    query {
+      repository(owner: "%s", name: "%s") {
+        id
+      }
+    }
+    ''' % (GITHUB_OWNER, GITHUB_REPO)
+    payload = {
+        "query": query
     }
 
-    response = requests.get(url, headers=headers)
+    response = requests.post(url, headers=headers, json=payload)
     if response.status_code == 200:
-        print("Debug ==>", response.json().get("id"))
-        return response.json().get("id")
+        repo_id = response.json()["data"]["repository"]["id"]
+        print("Debug ==>", repo_id)
+        return repo_id
     else:
         response.raise_for_status()
 
