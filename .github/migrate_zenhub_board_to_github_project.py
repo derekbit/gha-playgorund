@@ -41,6 +41,31 @@ def get_zenhub_board():
         response.raise_for_status()
 
 
+def get_github_project_node_id():
+    url = "https://api.github.com/graphql"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "query": f"""
+        query {{
+            organization(login: "{GITHUB_ORG}") {{
+                projectV2(number: 1) {{
+                    id
+                }}
+            }}
+        }}
+        """
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.json()["data"]["organization"]["projectV2"]["id"]
+    else:
+        response.raise_for_status()
+
+
 # def create_github_issue(title, body, labels):
 #     url = f"{GITHUB_API_URL}/repos/{GITHUB_OWNER}/{GITHUB_REPO}/issues"
 #     headers = {
@@ -72,9 +97,6 @@ def get_zenhub_board():
 
 
 def migrate_tickets():
-    repo_id = get_github_repo_id()
-    print(repo_id)
-
     board = get_zenhub_board()
     for pipeline in board['pipelines']:
         # column_id = None
@@ -86,6 +108,8 @@ def migrate_tickets():
 
         print(pipeline)
 
+    node_id = get_github_project_node_id()
+    print(node_id)
     #     # if column_id:
     #     #     for issue in pipeline['issues']:
     #     #         issue_title = issue['issue_title']
