@@ -32,6 +32,7 @@ def get_github_repo_id(github_token):
     }
 
     response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
+    print(response.json())
     if response.status_code == 200:
         repo_id = response.json()["data"]["repository"]["id"]
         print("Repository ID:", repo_id)
