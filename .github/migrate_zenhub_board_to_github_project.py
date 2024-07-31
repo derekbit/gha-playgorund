@@ -45,7 +45,7 @@ def get_zenhub_board():
         response.raise_for_status()
 
 
-def get_github_project_id():
+def get_github_project_node_id():
     query = '''
     {
       repository(owner: "%s", name: "%s") {
@@ -76,26 +76,16 @@ def get_github_project_id():
         raise Exception(f"Query failed to run by returning code of {response.status_code}. {response.text}")
 
 
-def get_github_project_node_id():
+def get_github_issue_node_id(issue_number):
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/issues/{issue_number}"
     headers = {
-        "Authorization": f"Bearer {GITHUB_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    data = {
-        "query": f"""
-        query {{
-            organization(login: "{GITHUB_ORG}") {{
-                projectV2(number: 1) {{
-                    id
-                }}
-            }}
-        }}
-        """
+        "Authorization": f"token {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github.v3+json"
     }
 
-    response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=data)
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        return response.json()["data"]["organization"]["projectV2"]["id"]
+        return response.json()
     else:
         response.raise_for_status()
 
@@ -141,8 +131,16 @@ def migrate_tickets():
         # Add more conditions as necessary
 
         print(pipeline)
+        for issue in pipeline['issues']:
+            issue = get_github_issue_node_id(issue['issue_number'])
+            print(issue)
+            # issue_title = issue['issue_title']
+            # issue_body = f"ZenHub Issue ID: {issue['issue_number']}"
+            # labels = [pipeline['name']]
+            # github_issue = create_github_issue(issue_title, issue_body, labels)
+            # add_issue_to_project(github_issue['id'], column_id)
 
-    node_id = get_github_project_id()
+    node_id = get_github_project_node_id()
     print(node_id)
     #     # if column_id:
     #     #     for issue in pipeline['issues']:
