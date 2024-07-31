@@ -17,7 +17,6 @@ def get_github_repo_id(github_token, github_org, github_repo):
 
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-        print("Debug ==>", response.json().get("id"))
         return response.json().get("id")
     else:
         response.raise_for_status()
@@ -196,10 +195,10 @@ def migrate_tickets(github_org, github_repo, github_project):
         # Iterating through each pipeline, which are corresponding to the GitHub Project statuses (columns)
         column_name = pipeline['name']
 
-        print(column_name)
         # Iterating through each ticket in the pipeline,
         # and creating a corresponding GitHub issue
         for issue in pipeline['issues']:
+            print(f"Processing issue: {issue['issue_number']} in pipeline: {column_name}")
             issue = get_github_issue(github_token, github_org, github_repo,
                                      issue['issue_number'])
 
