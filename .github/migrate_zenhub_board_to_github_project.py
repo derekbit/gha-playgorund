@@ -56,7 +56,7 @@ def get_github_project_id(token, owner, repo, project_name):
       }
     }
     ''' % (owner, repo)
-    
+
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
         "Content-Type": "application/json"
