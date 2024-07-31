@@ -165,7 +165,7 @@ def get_github_project():
         response.raise_for_status()
 
 
-def add_project_item(token, project_id, content_id):
+def add_project_item(project_id, content_id):
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
         "Content-Type": "application/json"
