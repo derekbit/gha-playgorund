@@ -191,7 +191,7 @@ def migrate_tickets(github_org, github_repo, github_project):
 
     # Get the ZenHub board details
     github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
-    board = get_zenhub_board(zenhub_token, github_token, github_repo_id)
+    board = get_zenhub_board(zenhub_token, github_repo_id)
     for pipeline in board['pipelines']:
         # Iterating through each pipeline, which are corresponding to the GitHub Project statuses (columns)
         column_name = pipeline['name']
