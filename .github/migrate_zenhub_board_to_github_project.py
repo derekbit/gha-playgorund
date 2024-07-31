@@ -180,13 +180,13 @@ def move_item_to_status(github_token, project_id, item_id, field_id, single_sele
 def migrate_tickets():
     github_token = os.getenv("GITHUB_TOKEN")
     zenhub_token = os.getenv("ZENHUB_ACCESS_TOKEN")
-    github_org = os.getenv("GITHUB_ORG")
-    github_repo = os.getenv("GITHUB_REPO")
-    github_project = os.getenv("GITHUB_PROJECT")
-    
+
+    github_org = "dereksu-org"
+    github_repo = "gha-playground"
+    github_project = "helloworld"
 
     # Get the GitHub Project details
-    project = get_github_project(github_token, github_org)
+    project = get_github_project(github_token, github_org, github_project)
     print(f"GitHub Project Details: {project}")
     project_number = project.get("number")
     project_id = project.get("id")
