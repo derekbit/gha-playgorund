@@ -5,8 +5,8 @@ GITHUB_ORG = "dereksu-org"
 GITHUB_REPO = "gha-playground"
 GITHUB_API_URL = "https://api.github.com"
 
-
 ZENHUB_API_URL = "https://api.zenhub.com/p1/repositories/{repo_id}/board"
+
 ZENHUB_ACCESS_TOKEN = os.getenv("ZENHUB_ACCESS_TOKEN")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 GITHUB_OWNER = "derekbit"
@@ -19,27 +19,26 @@ def get_github_repo_id():
     headers = {
         "Authorization": GITHUB_TOKEN
     }
-    response = requests.get(url, headers=headers)
 
+    response = requests.get(url, headers=headers)
     if response.status_code == 200:
         return response.json().get("id")
     else:
         response.raise_for_status()
 
 
-# def get_zenhub_board():
-#     url = "https://api.zenhub.com/p1/repositories/830364723/board"
-#     headers = {
-#         "Content-Type": "application/json",
-#         "X-Authentication-Token": ZENHUB_ACCESS_TOKEN
-#     }
+def get_zenhub_board():
+    url = ZENHUB_API_URL.format(repo_id=get_github_repo_id())
+    headers = {
+        "Content-Type": "application/json",
+        "X-Authentication-Token": ZENHUB_ACCESS_TOKEN
+    }
 
-#     response = requests.get(url, headers=headers)
-
-#     if response.status_code == 200:
-#         return response.json()
-#     else:
-#         response.raise_for_status()
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        response.raise_for_status()
 
 
 # def create_github_issue(title, body, labels):
@@ -72,20 +71,20 @@ def get_github_repo_id():
 #     return response.json()
 
 
-def sync_tickets():
+def migrate_tickets():
     repo_id = get_github_repo_id()
     print(repo_id)
-    
-    # for pipeline in board['pipelines']:
-    #     column_id = None
-    #     if pipeline['name'] == 'New Issues':
-    #         column_id = 'your_new_issues_column_id'
-    #     elif pipeline['name'] == 'Icebox':
-    #         column_id = 'your_icebox_column_id'
-    #     # Add more conditions as necessary
-        
-    #     # Print pipeline all fields
-    #     print(pipeline)
+
+    board = get_zenhub_board()
+    for pipeline in board['pipelines']:
+        # column_id = None
+        # if pipeline['name'] == 'New Issues':
+        #     column_id = 'your_new_issues_column_id'
+        # elif pipeline['name'] == 'Icebox':
+        #     column_id = 'your_icebox_column_id'
+        # Add more conditions as necessary
+
+        print(pipeline)
 
     #     # if column_id:
     #     #     for issue in pipeline['issues']:
@@ -97,4 +96,4 @@ def sync_tickets():
 
 
 if __name__ == "__main__":
-    sync_tickets()
+    migrate_tickets()
