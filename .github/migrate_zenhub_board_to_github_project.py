@@ -51,7 +51,7 @@ def get_github_issue(github_token, github_org, github_repo, issue_number):
         response.raise_for_status()
 
 
-def get_github_project_status(github_token, project_number):
+def get_github_project_status(github_token, github_org, github_repo, project_number):
     headers = {
         "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
@@ -81,7 +81,7 @@ def get_github_project_status(github_token, project_number):
         }
       }
     }
-    ''' % (GITHUB_ORG, GITHUB_REPO, project_number)
+    ''' % (github_org, github_repo, project_number)
     payload = {
         "query": query
     }
@@ -186,7 +186,7 @@ def migrate_tickets(github_org, github_repo, github_project):
     print(f"GitHub Project Details: {project}")
     project_number = project.get("number")
     project_id = project.get("id")
-    node_id, status = get_github_project_status(github_token, project_number)
+    node_id, status = get_github_project_status(github_token, github_org, github_repo, project_number)
     print(f"GitHub Project Details: number={project_number}, id={project_id}, status={status}")
 
     # Get the ZenHub board details
