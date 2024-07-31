@@ -133,7 +133,8 @@ def get_github_project_statuses(project_number):
         nodes = response.json().get("data").get("repository").get("projectV2").get("fields").get("nodes")
         for node in nodes:
             if node.get("name") == "Status":
-                return node.get("options")
+                # Convert node.get("options") to a dictionary
+                return node.get("id"), {option.get("name"): option.get("id") for option in node.get("options")}
     else:
         response.raise_for_status()
 
@@ -169,9 +170,8 @@ def get_github_project_number():
 
 def migrate_tickets():
     # Get status map from GitHub project
-    project_number = get_github_project_number()
-    print(project_number)
-    statuses = get_github_project_statuses(project_number)
+    node_id, statuses = get_github_project_statuses(get_github_project_number())
+    print(node_id)
     print(statuses)
 
     board = get_zenhub_board()
