@@ -2,7 +2,19 @@ name: Migrate ZenHub Board to GitHub Project
 
 on:
   workflow_dispatch:
-
+    inputs:
+      github_org:
+        description: "GitHub organization"
+        default: "dereksu-org"
+        required: true
+      github_repo:
+        description: "GitHub repository"
+        default: "gha-playground"
+        required: true
+      github_project:
+        description: "GitHub project"
+        default: "helloworld"
+        required: true
 jobs:
   sync_zenhub_to_github:
     runs-on: ubuntu-latest
@@ -24,5 +36,8 @@ jobs:
       env:
         ZENHUB_ACCESS_TOKEN: ${{ secrets.ZENHUB_ACCESS_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+        GITHUB_ORG: ${{ inputs.github_org }}
+        GITHUB_REPO: ${{ inputs.github_repo }}
+        GITHUB_PROJECT: ${{ inputs.github_project }}
       run: |
         python ./.github/migrate_zenhub_board_to_github_project.py
