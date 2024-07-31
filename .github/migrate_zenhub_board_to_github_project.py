@@ -76,7 +76,7 @@ def get_github_project_node_id():
         raise Exception(f"Query failed to run by returning code of {response.status_code}. {response.text}")
 
 
-def get_github_issue_node_id(issue_number):
+def get_github_issue(issue_number):
     url = f"https://api.github.com/repos/{GITHUB_ORG}/{GITHUB_REPO}/issues/{issue_number}"
     headers = {
         "Authorization": f"token {GITHUB_TOKEN}",
@@ -88,9 +88,6 @@ def get_github_issue_node_id(issue_number):
         return response.json()
     else:
         response.raise_for_status()
-
-
-#def add_issue_to_project(issue_id, column_id):
 
 
 def get_github_project_statuses(project_number):
@@ -139,7 +136,7 @@ def get_github_project_statuses(project_number):
         response.raise_for_status()
 
 
-def get_github_project_number():
+def get_github_project():
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
         "Content-Type": "application/json"
@@ -163,29 +160,55 @@ def get_github_project_number():
 
     response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
     if response.status_code == 200:
-        return response.json().get("data").get("organization").get("projectsV2").get("nodes")[0].get("number")
+        return response.json().get("data").get("organization").get("projectsV2").get("nodes")[0]
     else:
         response.raise_for_status()
 
 
+def add_project_item(token, project_id, content_id):
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    query = '''
+    mutation {
+      addProjectV2ItemById(input: {projectId: "%s", contentId: "%s"}) {
+        item {
+          id
+        }
+      }
+    }
+    ''' % (project_id, content_id)
+    payload = {
+        "query": query
+    }
+
+    response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
+    return response.json()
+
+
 def migrate_tickets():
     # Get status map from GitHub project
-    node_id, statuses = get_github_project_statuses(get_github_project_number())
+    project = get_github_project()
+    project_number = project.get("number")
+    project_id = project.get("id")
+
+    node_id, statuses = get_github_project_statuses(project_number)
     print(node_id)
     print(statuses)
 
     board = get_zenhub_board()
-    for pipeline in board['pipelines']: 
+    for pipeline in board['pipelines']:
         column_name = pipeline['name']
 
         print(column_name)
         # Iterating through each ticket in the pipeline,
         # and creating a corresponding GitHub issue
         for issue in pipeline['issues']:
-            issue = get_github_issue_node_id(issue['issue_number'])
-            node_id = issue['node_id']
+            issue = get_github_issue(issue['issue_number'])
+            issue_id = issue['node_id']
 
-            print(node_id)
+            add_project_item(project_id, issue_id)
             # issue_title = issue['issue_title']
             # issue_body = f"ZenHub Issue ID: {issue['issue_number']}"
             # labels = [pipeline['name']]
