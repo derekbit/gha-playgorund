@@ -4,8 +4,10 @@ import jq
 
 GITHUB_ORG = "dereksu-org"
 GITHUB_REPO = "gha-playground"
+GITHUB_PROJECT = "helloworld"
 GITHUB_API_URL = "https://api.github.com"
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
+
 
 ZENHUB_API_URL = "https://api.zenhub.com/p1/repositories/{repo_id}/board"
 
@@ -43,7 +45,7 @@ def get_zenhub_board():
         response.raise_for_status()
 
 
-def get_github_project_id(token, owner, repo, project_name):
+def get_github_project_id():
     query = '''
     {
       repository(owner: "%s", name: "%s") {
@@ -55,7 +57,7 @@ def get_github_project_id(token, owner, repo, project_name):
         }
       }
     }
-    ''' % (owner, repo)
+    ''' % (GITHUB_ORG, GITHUB_REPO)
 
     headers = {
         "Authorization": f"Bearer {GITHUB_TOKEN}",
@@ -68,7 +70,7 @@ def get_github_project_id(token, owner, repo, project_name):
     response = requests.post(GITHUB_GRAPHQL_URL, json=data, headers=headers)
     if response.status_code == 200:
         result = response.json()
-        project_id = jq.first(f'.data.repository.projectsV2.nodes[] | select(.title == "{project_name}") | .id', result)
+        project_id = jq.first(f'.data.repository.projectsV2.nodes[] | select(.title == "{GITHUB_PROJECT}") | .id', result)
         return project_id
     else:
         raise Exception(f"Query failed to run by returning code of {response.status_code}. {response.text}")
