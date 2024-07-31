@@ -6,7 +6,6 @@ GITHUB_ORG = "dereksu-org"
 GITHUB_REPO = "gha-playground"
 GITHUB_API_URL = "https://api.github.com"
 GITHUB_GRAPHQL_URL = "https://api.github.com/graphql"
-GITHUB_PROJECT_URL = "
 
 ZENHUB_API_URL = "https://api.zenhub.com/p1/repositories/{repo_id}/board"
 
@@ -73,6 +72,7 @@ def get_github_project_id(token, owner, repo, project_name):
         return project_id
     else:
         raise Exception(f"Query failed to run by returning code of {response.status_code}. {response.text}")
+
 
 def get_github_project_node_id():
     headers = {
