@@ -1,6 +1,7 @@
 import requests
 import os
 import jq
+import sys
 
 
 GITHUB_API_URL = "https://api.github.com"
@@ -176,12 +177,9 @@ def move_item_to_status(github_token, project_id, item_id, field_id,
         response.raise_for_status()
 
 
-def migrate_tickets():
+def migrate_tickets(github_org, github_repo, github_project):
     github_token = os.getenv("GITHUB_TOKEN")
     zenhub_token = os.getenv("ZENHUB_ACCESS_TOKEN")
-    github_org = os.getenv("GITHUB_ORG")
-    github_repo = os.getenv("GITHUB_REPO")
-    github_project = os.getenv("GITHUB_PROJECT")
 
     # Get the GitHub Project details
     project = get_github_project(github_token, github_org, github_project)
@@ -214,4 +212,8 @@ def migrate_tickets():
 
 
 if __name__ == "__main__":
-    migrate_tickets()
+    if len(sys.argv) < 4:
+        print('Usage: python migrate_zenhub_board_to_github_project.py <github_org> <github_repo> <github_project>')
+        sys.exit()
+
+    migrate_tickets(sys.argv[1], sys.argv[2], sys.argv[3])

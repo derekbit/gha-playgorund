@@ -36,8 +36,5 @@ jobs:
       env:
         ZENHUB_ACCESS_TOKEN: ${{ secrets.ZENHUB_ACCESS_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
-        GITHUB_ORG: ${{ inputs.github_org }}
-        GITHUB_REPO: ${{ inputs.github_repo }}
-        GITHUB_PROJECT: ${{ inputs.github_project }}
       run: |
-        python ./.github/migrate_zenhub_board_to_github_project.py
+        python ./.github/migrate_zenhub_board_to_github_project.py ${{ inputs.github_org }} ${{ inputs.github_repo }} ${{ inputs.github_project }}
