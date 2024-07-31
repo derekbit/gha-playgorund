@@ -90,42 +90,97 @@ def get_github_issue_node_id(issue_number):
         response.raise_for_status()
 
 
-# def create_github_issue(title, body, labels):
-#     url = f"{GITHUB_API_URL}/repos/{GITHUB_OWNER}/{GITHUB_REPO}/issues"
-#     headers = {
-#         "Authorization": f"Bearer {GITHUB_TOKEN}",
-#         "Accept": "application/vnd.github.v3+json"
-#     }
-#     data = {
-#         "title": title,
-#         "body": body,
-#         "labels": labels
-#     }
-#     response = requests.post(url, json=data, headers=headers)
-#     response.raise_for_status()
-#     return response.json()
+#def add_issue_to_project(issue_id, column_id):
 
-# def add_issue_to_project(issue_id, column_id):
-#     url = f"{GITHUB_API_URL}/projects/columns/{column_id}/cards"
-#     headers = {
-#         "Authorization": f"Bearer {GITHUB_TOKEN}",
-#         "Accept": "application/vnd.github.inertia-preview+json"
-#     }
-#     data = {
-#         "content_id": issue_id,
-#         "content_type": "Issue"
-#     }
-#     response = requests.post(url, json=data, headers=headers)
-#     response.raise_for_status()
-#     return response.json()
+
+def get_github_project_statuses(project_number):
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    query = '''
+    query {
+      repository(owner: "%s", name: "%s") {
+        projectV2(number: %d) {
+          id
+          title
+          fields(first: 10) {
+            nodes {
+              ... on ProjectV2FieldCommon {
+                id
+                name
+              }
+              ... on ProjectV2SingleSelectField {
+                id
+                name
+                options {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    ''' % (GITHUB_ORG, GITHUB_REPO, project_number)
+    payload = {
+        "query": query
+    }
+
+    response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
+    if response.status_code == 200:
+        nodes = response.json().get("data").get("repository").get("projectV2").get("fields").get("nodes")
+        for node in nodes:
+            if node.get("name") == "Status":
+                return node.get("options")
+    else:
+        response.raise_for_status()
+
+
+def get_github_project_number():
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Content-Type": "application/json"
+    }
+    query = '''
+    {
+      organization(login: "%s") {
+        projectsV2(first: 20) {
+          nodes {
+            id
+            title
+            number
+          }
+        }
+      }
+    }
+    ''' % (GITHUB_ORG)
+    payload = {
+        "query": query
+    }
+
+    response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
+    if response.status_code == 200:
+        return response.json().get("data").get("organization").get("projectsV2").get("nodes")[0].get("number")
+    else:
+        response.raise_for_status()
 
 
 def migrate_tickets():
+    # Get status map from GitHub project
+    project_number = get_github_project_number()
+    print(project_number)
+    statuses = get_github_project_statuses(project_number)
+    print(statuses)
+
     board = get_zenhub_board()
     for pipeline in board['pipelines']: 
         column_name = pipeline['name']
 
         print(column_name)
+        # Iterating through each ticket in the pipeline,
+        # and creating a corresponding GitHub issue
         for issue in pipeline['issues']:
             issue = get_github_issue_node_id(issue['issue_number'])
             node_id = issue['node_id']
