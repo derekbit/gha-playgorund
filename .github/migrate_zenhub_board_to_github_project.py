@@ -122,18 +122,15 @@ def get_github_issue_node_id(issue_number):
 
 def migrate_tickets():
     board = get_zenhub_board()
-    for pipeline in board['pipelines']:
-        # column_id = None
-        # if pipeline['name'] == 'New Issues':
-        #     column_id = 'your_new_issues_column_id'
-        # elif pipeline['name'] == 'Icebox':
-        #     column_id = 'your_icebox_column_id'
-        # Add more conditions as necessary
+    for pipeline in board['pipelines']: 
+        column_name = pipeline['name']
 
-        print(pipeline)
+        print(column_name)
         for issue in pipeline['issues']:
             issue = get_github_issue_node_id(issue['issue_number'])
-            print(issue)
+            node_id = issue['node_id']
+
+            print(node_id)
             # issue_title = issue['issue_title']
             # issue_body = f"ZenHub Issue ID: {issue['issue_number']}"
             # labels = [pipeline['name']]
