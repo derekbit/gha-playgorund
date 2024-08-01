@@ -198,6 +198,7 @@ def migrate_tickets(github_org, github_repo, github_project):
 
     # Get the ZenHub board details
     github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
+    print(f"GitHub Repo ID: {github_repo_id}")
     board = get_zenhub_board(zenhub_token, github_repo_id)
 
     # Check pipelines of the ZenHub board and status of the GitHub Project are matching using for loop
