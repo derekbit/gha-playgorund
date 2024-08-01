@@ -176,6 +176,14 @@ def move_item_to_status(github_token, project_id, item_id, field_id,
         response.raise_for_status()
 
 
+def check_zenhub_pipelins_github_project_status_match(board, status):
+    zenhub_pipelines = [pipeline['name'] for pipeline in board['pipelines']]
+    github_project_statuses = list(status.keys())
+    for pipeline in zenhub_pipelines:
+        if pipeline not in github_project_statuses:
+            raise Exception(f"Pipeline '{pipeline}' not found in GitHub Project statuses")
+
+
 def migrate_tickets(github_org, github_repo, github_project):
     github_token = os.getenv("GITHUB_TOKEN")
     zenhub_token = os.getenv("ZENHUB_ACCESS_TOKEN")
@@ -191,6 +199,10 @@ def migrate_tickets(github_org, github_repo, github_project):
     # Get the ZenHub board details
     github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
     board = get_zenhub_board(zenhub_token, github_repo_id)
+
+    # Check pipelines of the ZenHub board and status of the GitHub Project are matching using for loop
+    check_zenhub_pipelins_github_project_status_match(board, status)
+
     for pipeline in board['pipelines']:
         # Iterating through each pipeline, which are corresponding to the GitHub Project statuses (columns)
         column_name = pipeline['name']
