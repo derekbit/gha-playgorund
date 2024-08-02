@@ -139,6 +139,8 @@ def get_github_project_info(github_token, github_org, github_project):
 
         for node in nodes:
             print(f"Node: {node}")
+            print(f"Title: {node.get('title')}")
+            print(f"GitHub Project: {github_project}")
             if node.get("title") == github_project:
                 return node
     else:
