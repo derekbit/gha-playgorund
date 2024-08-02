@@ -264,7 +264,7 @@ def migrate_tickets(github_org, github_repo, github_project):
                                 status[column_name])
             set_item_estimate(github_token,
                               project_id, item_id,
-                              estimate_node_id, 3)
+                              estimate_node_id, issue['estimate'])
 
 
 if __name__ == "__main__":
