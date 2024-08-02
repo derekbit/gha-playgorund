@@ -134,9 +134,11 @@ def get_github_project_info(github_token, github_org, github_project):
     print(f"GitHub Project Info: {response.json()}")
     if response.status_code == 200:
         # fine project by title
-        for project in response.json().get("data").get("organization").get("projectsV2").get("nodes"):
-            if project.get("title") == github_project:
-                return project
+        nodes = response.json().get("data").get("organization").get("projectsV2").get("nodes")
+        for node in nodes:
+            print(f"Node: {node}")
+            if node.get("title") == github_project:
+                return node
     else:
         response.raise_for_status()
 
