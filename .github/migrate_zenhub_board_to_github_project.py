@@ -131,6 +131,7 @@ def get_github_project_info(github_token, github_org, github_project):
     }
 
     response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
+    print(f"GitHub Project Info: {response.json()}")
     if response.status_code == 200:
         # fine project by title
         for project in response.json().get("data").get("organization").get("projectsV2").get("nodes"):
