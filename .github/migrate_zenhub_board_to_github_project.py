@@ -264,6 +264,7 @@ def migrate_tickets(github_org, github_repo, github_project):
                                 status[column_name])
             # check if estimate is exist
             estimate = issue.get('estimate')
+            print(f"Estimate: {estimate}")
             if estimate is not None:
                 print(f"Setting estimate: {issue['estimate'].get('value')} for issue: {issue['issue_number']}")
                 set_item_estimate(github_token,
