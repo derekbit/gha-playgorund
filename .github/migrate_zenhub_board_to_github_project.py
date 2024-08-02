@@ -110,7 +110,7 @@ def get_github_project_estimate(github_token, github_org, github_repo, project_n
             return node.get("id"), {option.get("name"): option.get("id") for option in node.get("options")}
 
 
-def get_github_project(github_token, github_org, github_project):
+def get_github_project_info(github_token, github_org, github_project):
     headers = {
         "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
@@ -227,7 +227,7 @@ def migrate_tickets(github_org, github_repo, github_project):
     zenhub_token = os.getenv("ZENHUB_ACCESS_TOKEN")
 
     # Get the GitHub Project details
-    project = get_github_project(github_token, github_org, github_project)
+    project = get_github_project_info(github_token, github_org, github_project)
     print(f"GitHub Project Details: {project}")
     project_number = project.get("number")
     project_id = project.get("id")
