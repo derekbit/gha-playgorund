@@ -250,31 +250,31 @@ def migrate_tickets(github_org, github_repo, github_project):
     # Check pipelines of the ZenHub board and status of the GitHub Project are matching using for loop
     check_zenhub_pipelins_github_project_status_match(board, status)
 
-    # for pipeline in board['pipelines']:
-    #     # Iterating through each pipeline, which are corresponding to the GitHub Project statuses (columns)
-    #     column_name = pipeline['name']
+    for pipeline in board['pipelines']:
+        # Iterating through each pipeline, which are corresponding to the GitHub Project statuses (columns)
+        column_name = pipeline['name']
 
-    #     # Iterating through each ticket in the pipeline,
-    #     # and creating a corresponding GitHub issue
-    #     for issue in pipeline['issues']:
-    #         print("Issue: ", issue)
-    #         print(f"Processing issue: {issue['issue_number']} in pipeline: {column_name}")
-    #         issue_info = get_github_issue(github_token, github_org, github_repo,
-    #                                       issue['issue_number'])
+        # Iterating through each ticket in the pipeline,
+        # and creating a corresponding GitHub issue
+        for issue in pipeline['issues']:
+            print("Issue: ", issue)
+            print(f"Processing issue: {issue['issue_number']} in pipeline: {column_name}")
+            issue_info = get_github_issue(github_token, github_org, github_repo,
+                                          issue['issue_number'])
 
-    #         result = add_github_project_item(github_token,
-    #                                          project_id, issue_info['node_id'])
-    #         item_id = result['data']['addProjectV2ItemById']['item']['id']
-    #         move_item_to_status(github_token,
-    #                             project_id, item_id,
-    #                             status_node_id,
-    #                             status[column_name])
-    #         # check if estimate is exist
-    #         if 'estimate' in issue:
-    #             print(f"Setting estimate: {issue['estimate'].get('value')} for issue: {issue['issue_number']}")
-    #             set_item_estimate(github_token,
-    #                               project_id, item_id,
-    #                               estimate_node_id, issue['estimate'].get('value'))
+            # result = add_github_project_item(github_token,
+            #                                  project_id, issue_info['node_id'])
+            # item_id = result['data']['addProjectV2ItemById']['item']['id']
+            # move_item_to_status(github_token,
+            #                     project_id, item_id,
+            #                     status_node_id,
+            #                     status[column_name])
+            # # check if estimate is exist
+            # if 'estimate' in issue:
+            #     print(f"Setting estimate: {issue['estimate'].get('value')} for issue: {issue['issue_number']}")
+            #     set_item_estimate(github_token,
+            #                       project_id, item_id,
+            #                       estimate_node_id, issue['estimate'].get('value'))
 
 
 if __name__ == "__main__":
