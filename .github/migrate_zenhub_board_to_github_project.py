@@ -98,7 +98,7 @@ def get_github_project_status(github_token, github_org, github_repo, project_num
     for node in nodes:
         if node.get("name") == "Status":
             # Convert node.get("options") to a dictionary
-            return node.get("id"), {option.get("name"): option.get("id") for option in node.get("options")}
+            return node.get("name").get("id")
 
 
 def get_github_project_estimate(github_token, github_org, github_repo, project_number):
@@ -234,8 +234,8 @@ def migrate_tickets(github_org, github_repo, github_project):
     status_node_id, status = get_github_project_status(github_token, github_org, github_repo, project_number)
     print(f"GitHub Project Details: number={project_number}, id={project_id}, status node_id={status_node_id}, status={status}")
 
-    estimate_node_id, estimate = get_github_project_status(github_token, github_org, github_repo, project_number)
-    print(f"GitHub Project Details: number={project_number}, id={project_id}, estimate node_id={estimate_node_id}, estimate={estimate}")
+    estimate_node_id = get_github_project_status(github_token, github_org, github_repo, project_number)
+    print(f"GitHub Project Details: number={project_number}, id={project_id}, estimate node_id={estimate_node_id})
 
     # Get the ZenHub board details
     github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
