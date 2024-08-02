@@ -250,18 +250,23 @@ def migrate_tickets(github_org, github_repo, github_project):
     # Check pipelines of the ZenHub board and status of the GitHub Project are matching using for loop
     check_zenhub_pipelins_github_project_status_match(board, status)
 
+    maxTickets = 10
+    i = 0
     for pipeline in board['pipelines']:
         # Iterating through each pipeline, which are corresponding to the GitHub Project statuses (columns)
         column_name = pipeline['name']
 
         # Iterating through each ticket in the pipeline,
         # and creating a corresponding GitHub issue
+        
         for issue in pipeline['issues']:
             print("Issue: ", issue)
             print(f"Processing issue: {issue['issue_number']} in pipeline: {column_name}")
             issue_info = get_github_issue(github_token, github_org, github_repo,
                                           issue['issue_number'])
-
+            i += 1
+            if i > maxTickets:
+                break
             # result = add_github_project_item(github_token,
             #                                  project_id, issue_info['node_id'])
             # item_id = result['data']['addProjectV2ItemById']['item']['id']
