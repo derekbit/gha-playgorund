@@ -263,6 +263,7 @@ def migrate_tickets(github_org, github_repo, github_project):
                                 status_node_id,
                                 status[column_name])
             if issue.get('estimate'):
+                print(f"Setting estimate: {issue['estimate'].get('value')} for issue: {issue['issue_number']}")
                 set_item_estimate(github_token,
                                   project_id, item_id,
                                   estimate_node_id, issue['estimate'].get('value'))
