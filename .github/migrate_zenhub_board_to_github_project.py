@@ -266,6 +266,7 @@ def migrate_tickets(github_org, github_repo, github_project):
                                           issue['issue_number'])
             result = add_github_project_item(github_token,
                                              project_id, issue_info['node_id'])
+            print(f"Added issue: result={result}")
             item_id = result['data']['addProjectV2ItemById']['item']['id']
             move_item_to_status(github_token,
                                 project_id, item_id,
