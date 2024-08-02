@@ -196,7 +196,7 @@ def set_item_estimate(github_token, project_id, item_id, field_id, value):
     }
     query = '''
     mutation {
-      updateProjectV2ItemFieldValue(input: {projectId: "%s", itemId: "%s", fieldId: "%s", value: {text: "%s"}}) {
+      updateProjectV2ItemFieldValue(input: {projectId: "%s", itemId: "%s", fieldId: "%s", value: {number: "%f"}}) {
         projectV2Item {
           id
         }
@@ -266,7 +266,7 @@ def migrate_tickets(github_org, github_repo, github_project):
                                 status[column_name])
             set_item_estimate(github_token,
                               project_id, item_id,
-                              estimate_node_id, "3")
+                              estimate_node_id, 3)
 
 
 if __name__ == "__main__":
