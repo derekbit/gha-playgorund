@@ -50,7 +50,7 @@ def get_github_issue(github_token, github_org, github_repo, issue_number):
         response.raise_for_status()
 
 
-def get_github_project_status(github_token, github_org, github_repo, project_number):
+def get_github_project(github_token, github_org, github_repo, project_number):
     headers = {
         "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
@@ -61,7 +61,7 @@ def get_github_project_status(github_token, github_org, github_repo, project_num
         projectV2(number: %d) {
           id
           title
-          fields(first: 10) {
+          fields(first: 20) {
             nodes {
               ... on ProjectV2FieldCommon {
                 id
@@ -87,13 +87,27 @@ def get_github_project_status(github_token, github_org, github_repo, project_num
 
     response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
     if response.status_code == 200:
-        nodes = response.json().get("data").get("repository").get("projectV2").get("fields").get("nodes")
-        for node in nodes:
-            if node.get("name") == "Status":
-                # Convert node.get("options") to a dictionary
-                return node.get("id"), {option.get("name"): option.get("id") for option in node.get("options")}
+        return response.json().get("data").get("repository").get("projectV2")
     else:
         response.raise_for_status()
+
+
+def get_github_project_status(github_token, github_org, github_repo, project_number):
+    project = get_github_project(github_token, github_org, github_repo, project_number)
+    nodes = project.get("fields").get("nodes")
+    for node in nodes:
+        if node.get("name") == "Status":
+            # Convert node.get("options") to a dictionary
+            return node.get("id"), {option.get("name"): option.get("id") for option in node.get("options")}
+
+
+def get_github_project_estimate(github_token, github_org, github_repo, project_number):
+    project = get_github_project(github_token, github_org, github_repo, project_number)
+    nodes = project.get("fields").get("nodes")
+    for node in nodes:
+        if node.get("name") == "Estimate":
+            # Convert node.get("options") to a dictionary
+            return node.get("id"), {option.get("name"): option.get("id") for option in node.get("options")}
 
 
 def get_github_project(github_token, github_org, github_project):
@@ -150,8 +164,7 @@ def add_github_project_item(github_token, project_id, content_id):
     return response.json()
 
 
-def move_item_to_status(github_token, project_id, item_id, field_id,
-                        single_select_option_id):
+def move_item_to_status(github_token, project_id, item_id, field_id, single_select_option_id):
     headers = {
         "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
@@ -165,6 +178,31 @@ def move_item_to_status(github_token, project_id, item_id, field_id,
       }
     }
     ''' % (project_id, item_id, field_id, single_select_option_id)
+    payload = {
+        "query": query
+    }
+
+    response = requests.post(GITHUB_GRAPHQL_URL, headers=headers, json=payload)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        response.raise_for_status()
+
+
+def set_item_estimate(github_token, project_id, item_id, field_id, value):
+    headers = {
+        "Authorization": f"Bearer {github_token}",
+        "Content-Type": "application/json"
+    }
+    query = '''
+    mutation {
+      updateProjectV2ItemFieldValue(input: {projectId: "%s", itemId: "%s", fieldId: "%s", value: {text: "%s"}}) {
+        projectV2Item {
+          id
+        }
+      }
+    }
+    ''' % (project_id, item_id, field_id, value)
     payload = {
         "query": query
     }
@@ -193,8 +231,11 @@ def migrate_tickets(github_org, github_repo, github_project):
     print(f"GitHub Project Details: {project}")
     project_number = project.get("number")
     project_id = project.get("id")
-    node_id, status = get_github_project_status(github_token, github_org, github_repo, project_number)
-    print(f"GitHub Project Details: number={project_number}, id={project_id}, status={status}")
+    status_node_id, status = get_github_project_status(github_token, github_org, github_repo, project_number)
+    print(f"GitHub Project Details: number={project_number}, id={project_id}, status node_id={status_node_id}, status={status}")
+
+    estimate_node_id, estimate = get_github_project_status(github_token, github_org, github_repo, project_number)
+    print(f"GitHub Project Details: number={project_number}, id={project_id}, estimate node_id={estimate_node_id}, estimate={estimate}")
 
     # Get the ZenHub board details
     github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
@@ -220,8 +261,12 @@ def migrate_tickets(github_org, github_repo, github_project):
                                              project_id, issue['node_id'])
             item_id = result['data']['addProjectV2ItemById']['item']['id']
             move_item_to_status(github_token,
-                                project_id, item_id, node_id,
+                                project_id, item_id,
+                                status_node_id,
                                 status[column_name])
+            set_item_estimate(github_token,
+                              project_id, item_id,
+                              estimate_node_id, "3")
 
 
 if __name__ == "__main__":
