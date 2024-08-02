@@ -192,15 +192,15 @@ def set_item_estimate(github_token, project_id, item_id, field_id, value):
         "Authorization": f"Bearer {github_token}",
         "Content-Type": "application/json"
     }
-    query = '''
-    mutation {
-      updateProjectV2ItemFieldValue(input: {projectId: "%s", itemId: "%s", fieldId: "%s", value: {number: "%f"}}) {
-        projectV2Item {
+    query = f'''
+    mutation {{
+      updateProjectV2ItemFieldValue(input: {{projectId: "{project_id}", itemId: "{item_id}", fieldId: "{field_id}", value: {{number: {value}}}}}) {{
+        projectV2Item {{
           id
-        }
-      }
-    }
-    ''' % (project_id, item_id, field_id, value)
+        }}
+      }}
+    }}
+    '''
     payload = {
         "query": query
     }
