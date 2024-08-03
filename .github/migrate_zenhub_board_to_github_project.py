@@ -259,7 +259,7 @@ def check_zenhub_pipelins_github_project_status_match(board, status):
             raise Exception(f"Pipeline '{pipeline}' not found in GitHub Project statuses")
 
 
-def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo, project_id, status_node_id, status, estimate_node_id):
+def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo, project_id, status, status_node_id, estimate_node_id):
     github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
     issues = get_github_issues(github_token, github_org, github_repo, "closed")
     for issue in issues:
@@ -335,11 +335,20 @@ def migrate_tickets(github_org, github_repo, github_project):
     # Check pipelines of the ZenHub board and status of the GitHub Project are matching using for loop
     check_zenhub_pipelins_github_project_status_match(board, status)
 
-    add_zenhub_pipelines_to_github_project(github_token, github_org, github_repo, project_id, board, status, status_node_id, estimate_node_id)
+    # Add ZenHub pipelines to the GitHub Project Statuses
+    add_zenhub_pipelines_to_github_project(github_token,
+                                           github_org, github_repo,
+                                           project_id,
+                                           board,
+                                           status, status_node_id,
+                                           estimate_node_id)
 
     # ZenHub doesn't have closed pipeline, so we need to iterate through all closed issues in the GitHub repo.
-    add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo,
-                                        project_id, status_node_id, status, estimate_node_id)
+    add_closed_issues_to_github_project(github_token, zenhub_token,
+                                        github_org, github_repo,
+                                        project_id,
+                                        status, status_node_id,
+                                        estimate_node_id)
 
 
 if __name__ == "__main__":
