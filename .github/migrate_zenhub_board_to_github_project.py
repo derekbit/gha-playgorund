@@ -336,12 +336,12 @@ def migrate_tickets(github_org, github_repo, github_project):
     check_zenhub_pipelins_github_project_status_match(board, status)
 
     # Add ZenHub pipelines to the GitHub Project Statuses
-    add_zenhub_pipelines_to_github_project(github_token,
-                                           github_org, github_repo,
-                                           project_id,
-                                           board,
-                                           status, status_node_id,
-                                           estimate_node_id)
+    # add_zenhub_pipelines_to_github_project(github_token,
+    #                                        github_org, github_repo,
+    #                                        project_id,
+    #                                        board,
+    #                                        status, status_node_id,
+    #                                        estimate_node_id)
 
     # ZenHub doesn't have closed pipeline, so we need to iterate through all closed issues in the GitHub repo.
     add_closed_issues_to_github_project(github_token, zenhub_token,
