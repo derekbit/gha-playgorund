@@ -259,7 +259,8 @@ def check_zenhub_pipelins_github_project_status_match(board, status):
             raise Exception(f"Pipeline '{pipeline}' not found in GitHub Project statuses")
 
 
-def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo, github_repo_id, project_id, status_node_id, status, estimate_node_id):
+def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo, project_id, status_node_id, status, estimate_node_id):
+    github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
     issues = get_github_issues(github_token, github_org, github_repo, "closed")
     for issue in issues:
         print(f"Processing closed issue: {issue['number']}")
@@ -272,12 +273,13 @@ def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, 
 
         zenhub_issue = get_zenhub_issue_info(zenhub_token, github_repo_id, issue['number'])
         print(f"ZenHub Issue Info: {zenhub_issue}")
+
         # check if estimate is exist
-        if 'estimate' in issue:
-            print(f"Setting estimate: {issue['estimate'].get('value')} for issue: {issue['number']}")
+        if 'estimate' in zenhub_issue:
+            print(f"Setting estimate: {zenhub_issue['estimate'].get('value')} for issue: {zenhub_issue['number']}")
             set_item_estimate(github_token,
                               project_id, item_id,
-                              estimate_node_id, issue['estimate'].get('value'))
+                              estimate_node_id, zenhub_issue['estimate'].get('value'))
 
 
 def add_zenhub_pipelines_to_github_project(github_token, github_org, github_repo, project_id, board, status, status_node_id, estimate_node_id):
@@ -336,7 +338,7 @@ def migrate_tickets(github_org, github_repo, github_project):
     add_zenhub_pipelines_to_github_project(github_token, github_org, github_repo, project_id, board, status, status_node_id, estimate_node_id)
 
     # ZenHub doesn't have closed pipeline, so we need to iterate through all closed issues in the GitHub repo.
-    add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo, github_repo_id,
+    add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo,
                                         project_id, status_node_id, status, estimate_node_id)
 
 
