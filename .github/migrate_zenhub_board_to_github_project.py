@@ -276,7 +276,7 @@ def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, 
 
         # check if estimate is exist
         if 'estimate' in zenhub_issue:
-            print(f"Setting estimate: {zenhub_issue['estimate'].get('value')} for issue: {zenhub_issue['number']}")
+            print(f"Setting estimate: {zenhub_issue['estimate'].get('value')} for issue: {issue['number']}")
             set_item_estimate(github_token,
                               project_id, item_id,
                               estimate_node_id, zenhub_issue['estimate'].get('value'))
