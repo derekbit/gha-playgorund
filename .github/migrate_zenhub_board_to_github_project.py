@@ -275,23 +275,26 @@ def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, 
     issues = get_github_issues(github_token, github_org, github_repo, "closed")
     for issue in issues:
         print(f"Processing closed issue: {issue['number']}")
-        result = add_github_project_item(github_token, project_id, issue['node_id'])
-        print(f"Added issue: result={result}")
-        item_id = result['data']['addProjectV2ItemById']['item']['id']
-        move_item_to_status(github_token,
-                            project_id, item_id,
-                            status_node_id,
-                            status['Closed'])
 
-        zenhub_issue = get_zenhub_issue_info(zenhub_token, github_repo_id, issue['number'])
-        print(f"ZenHub Issue Info: {zenhub_issue}")
+        if 'pull_request' not in issue:
+          result = add_github_project_item(github_token, project_id, issue['node_id'])
+          print(f"Added issue: result={result}")
 
-        # check if estimate is exist
-        if 'estimate' in zenhub_issue:
-            print(f"Setting estimate: {zenhub_issue['estimate'].get('value')} for issue: {issue['number']}")
-            set_item_estimate(github_token,
+          item_id = result['data']['addProjectV2ItemById']['item']['id']
+          move_item_to_status(github_token,
                               project_id, item_id,
-                              estimate_node_id, zenhub_issue['estimate'].get('value'))
+                              status_node_id,
+                              status['Closed'])
+
+          zenhub_issue = get_zenhub_issue_info(zenhub_token, github_repo_id, issue['number'])
+          print(f"ZenHub Issue Info: {zenhub_issue}")
+
+          # check if estimate is exist
+          if 'estimate' in zenhub_issue:
+              print(f"Setting estimate: {zenhub_issue['estimate'].get('value')} for issue: {issue['number']}")
+              set_item_estimate(github_token,
+                                project_id, item_id,
+                                estimate_node_id, zenhub_issue['estimate'].get('value'))
 
 
 def add_zenhub_pipelines_to_github_project(github_token, github_org, github_repo, project_id, board, status, status_node_id, estimate_node_id):
