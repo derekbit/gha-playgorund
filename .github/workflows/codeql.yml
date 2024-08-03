@@ -19,5 +19,5 @@ jobs:
     permissions:
       security-events: write
     uses: dereksu-org/reusable-workflows/.github/workflows/codeql.yml@main
-    with:
-      secrets: inherit
+    secrets:
+      CUSTOM_GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
