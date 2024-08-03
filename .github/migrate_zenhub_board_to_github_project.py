@@ -276,6 +276,7 @@ def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, 
     for issue in issues:
         print(f"Processing closed issue: {issue['number']}")
         result = add_github_project_item(github_token, project_id, issue['node_id'])
+        print(f"Added issue: result={result}")
         item_id = result['data']['addProjectV2ItemById']['item']['id']
         move_item_to_status(github_token,
                             project_id, item_id,
@@ -346,13 +347,13 @@ def migrate_tickets(github_org, github_repo, github_project):
     # Check pipelines of the ZenHub board and status of the GitHub Project are matching using for loop
     check_zenhub_pipelins_github_project_status_match(board, status)
 
-    # Add ZenHub pipelines to the GitHub Project Statuses
-    add_zenhub_pipelines_to_github_project(github_token,
-                                           github_org, github_repo,
-                                           project_id,
-                                           board,
-                                           status, status_node_id,
-                                           estimate_node_id)
+    # # Add ZenHub pipelines to the GitHub Project Statuses
+    # add_zenhub_pipelines_to_github_project(github_token,
+    #                                        github_org, github_repo,
+    #                                        project_id,
+    #                                        board,
+    #                                        status, status_node_id,
+    #                                        estimate_node_id)
 
     # ZenHub doesn't have closed pipeline, so we need to iterate through all closed issues in the GitHub repo.
     add_closed_issues_to_github_project(github_token, zenhub_token,
