@@ -2,6 +2,7 @@ import requests
 import os
 import jq
 import sys
+import time
 
 
 GITHUB_API_URL = "https://api.github.com"
@@ -296,6 +297,8 @@ def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, 
                 set_item_estimate(github_token,
                                   project_id, item_id,
                                   estimate_node_id, zenhub_issue['estimate'].get('value'))
+            # Sleep for 0.5 seconds to avoid rate limiting
+            time.sleep(0.5)
 
 
 def add_zenhub_pipelines_to_github_project(github_token, github_org, github_repo, project_id, board, status, status_node_id, estimate_node_id):
