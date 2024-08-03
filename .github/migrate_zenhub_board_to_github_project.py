@@ -226,14 +226,25 @@ def get_github_issues(github_token, github_org, github_repo, state):
         "Accept": "application/vnd.github.v3+json"
     }
     params = {
-        "state": state
+        "state": "closed",
+        "per_page": 100,
+        "page": 1
     }
 
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        response.raise_for_status()
+    all_issues = []
+    while True:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code != 200:
+            raise Exception(f"Error fetching issues: {response.status_code} {response.text}")
+
+        issues = response.json()
+        if not issues:
+            break
+
+        all_issues.extend(issues)
+        params["page"] += 1
+
+    return all_issues
 
 
 def get_zenhub_issue_info(zenhub_token, github_repo_id, issue_number):
