@@ -276,6 +276,7 @@ def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, 
     for issue in issues:
         print(f"Processing closed issue: {issue['number']}")
 
+        # Exclude PRs to the project
         if 'pull_request' not in issue:
             result = add_github_project_item(github_token, project_id, issue['node_id'])
             print(f"Added issue: result={result}")
