@@ -18,6 +18,6 @@ jobs:
   static-scan:
     permissions:
       security-events: write
-    uses: dereksu-org/reusable-workflows/.github/workflows/codeql.yml
+    uses: dereksu-org/reusable-workflows/.github/workflows/codeql.yml@main
     with:
       secrets: inherit
