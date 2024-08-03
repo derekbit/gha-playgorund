@@ -219,12 +219,49 @@ def set_item_estimate(github_token, project_id, item_id, field_id, value):
         response.raise_for_status()
 
 
+def get_github_issues(github_token, github_org, github_repo, state):
+    url = f"https://api.github.com/repos/{github_org}/{github_repo}/issues"
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+    params = {
+        "state": state
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        response.raise_for_status()
+
+
 def check_zenhub_pipelins_github_project_status_match(board, status):
     zenhub_pipelines = [pipeline['name'] for pipeline in board['pipelines']]
     github_project_statuses = list(status.keys())
     for pipeline in zenhub_pipelines:
         if pipeline not in github_project_statuses:
             raise Exception(f"Pipeline '{pipeline}' not found in GitHub Project statuses")
+
+
+def add_closed_issues_to_github_project(github_token, github_org, github_repo, project_id, status_node_id, status, estimate_node_id):
+    issues = get_github_issues(github_token, github_org, github_repo, "closed")
+    for issue in issues:
+        print(f"Processing closed issue: {issue['number']}")
+        issue_info = get_github_issue(github_token, github_org, github_repo, issue['number'])
+        result = add_github_project_item(github_token,
+                                         project_id, issue_info['node_id'])
+        item_id = result['data']['addProjectV2ItemById']['item']['id']
+        move_item_to_status(github_token,
+                            project_id, item_id,
+                            status_node_id,
+                            status['Closed'])
+        # check if estimate is exist
+        if 'estimate' in issue:
+            print(f"Setting estimate: {issue['estimate'].get('value')} for issue: {issue['number']}")
+            set_item_estimate(github_token,
+                              project_id, item_id,
+                              estimate_node_id, issue['estimate'].get('value'))
 
 
 def migrate_tickets(github_org, github_repo, github_project):
@@ -278,6 +315,9 @@ def migrate_tickets(github_org, github_repo, github_project):
                 set_item_estimate(github_token,
                                   project_id, item_id,
                                   estimate_node_id, issue['estimate'].get('value'))
+
+    # ZenHub doesn't have closed pipeline, so we need to iterate through all closed issues in the GitHub repo.
+    add_closed_issues_to_github_project(github_token, github_org, github_repo, project_id, status_node_id, status, estimate_node_id)
 
 
 if __name__ == "__main__":
