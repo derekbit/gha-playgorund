@@ -20,4 +20,4 @@ jobs:
       security-events: write
     uses: dereksu-org/reusable-workflows/.github/workflows/codeql.yml@main
     secrets:
-      CUSTOM_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CUSTOM_GITHUB_TOKEN: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
