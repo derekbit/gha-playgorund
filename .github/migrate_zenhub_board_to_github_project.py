@@ -259,6 +259,8 @@ def get_zenhub_issue_info(zenhub_token, github_repo_id, issue_number):
 
     if response.status_code == 200:
         return response.json()
+    elif response.status_code == 403:
+        print("Rate limit exceeded. Sleeping for 1 minute")
     else:
         response.raise_for_status()
 
@@ -298,7 +300,7 @@ def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, 
                                   project_id, item_id,
                                   estimate_node_id, zenhub_issue['estimate'].get('value'))
             # Sleep for 0.5 seconds to avoid rate limiting
-            time.sleep(0.5)
+            time.sleep(2)
 
 
 def add_zenhub_pipelines_to_github_project(github_token, github_org, github_repo, project_id, board, status, status_node_id, estimate_node_id):
