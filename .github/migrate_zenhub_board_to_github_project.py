@@ -229,7 +229,7 @@ def get_github_issues(github_token, github_org, github_repo, state):
     params = {
         "state": "closed",
         "per_page": 100,
-        "page": 1
+        "page": 40
     }
 
     all_issues = []
