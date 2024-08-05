@@ -276,7 +276,10 @@ def check_zenhub_pipelins_github_project_status_match(board, status):
 def add_closed_issues_to_github_project(github_token, zenhub_token, github_org, github_repo, project_id, status, status_node_id, estimate_node_id):
     github_repo_id = get_github_repo_id(github_token, github_org, github_repo)
     issues = get_github_issues(github_token, github_org, github_repo, "closed")
-    for issue in issues:
+
+    print(f"Found {len(issues)} closed issues in the GitHub repo")
+
+    for issue in reversed(issues):
         print(f"Processing closed issue: {issue['number']}")
 
         # Exclude PRs to the project
